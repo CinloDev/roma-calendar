@@ -1,17 +1,19 @@
 import dynamic from 'next/dynamic'
+import Layout from '../components/Layout'
 const Calendar = dynamic(()=>import('../components/Calendar'), { ssr:false })
 
 export default function Home(){
   return (
-    <main style={{padding:20,fontFamily:'Arial, sans-serif'}}>
-      <header>
-        <h1>Turnos - Prototipo</h1>
-        <p>Prototipo mínimo conectado a Supabase</p>
-      </header>
-
-      <section style={{marginTop:20}}>
-        <Calendar />
+    <Layout>
+      <section style={{marginTop:8}}>
+        <div className="card">
+          <h2>Turnos</h2>
+          <p style={{color:'var(--muted)',marginTop:6}}>Selecciona un día y una franja horaria para reservar.</p>
+          <div style={{marginTop:12}}>
+            <Calendar />
+          </div>
+        </div>
       </section>
-    </main>
+    </Layout>
   )
 }

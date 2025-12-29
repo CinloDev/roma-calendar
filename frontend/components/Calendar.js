@@ -7,15 +7,33 @@ const TIMES = [
 ]
 
 export default function Calendar() {
-  const [dateStart, setDateStart] = useState(new Date())
+  function startOfWeekMonday(d) {
+    const dt = new Date(d)
+    const day = dt.getDay() // 0 (Sun) - 6 (Sat)
+    const diff = (day + 6) % 7 // days since Monday
+    dt.setDate(dt.getDate() - diff)
+    dt.setHours(0,0,0,0)
+    return dt
+  }
+
+  const [dateStart, setDateStart] = useState(() => startOfWeekMonday(new Date()))
   const [bookings, setBookings] = useState([])
+  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => { fetchBookings() }, [dateStart])
+
+  useEffect(()=>{
+    function check(){ setIsMobile(typeof window !== 'undefined' && window.matchMedia('(max-width:640px)').matches) }
+    check()
+    window.addEventListener('resize', check)
+    return ()=> window.removeEventListener('resize', check)
+  },[])
 
   async function fetchBookings() {
     const start = new Date(dateStart)
     const end = new Date(start)
-    end.setDate(start.getDate() + 7)
+    // exclusivo: tomar 5 días (lunes a viernes)
+    end.setDate(start.getDate() + 5)
     const startISO = start.toISOString().slice(0,10)
     const endISO = end.toISOString().slice(0,10)
     const { data, error } = await fetchBookingsRange(startISO, endISO)
@@ -25,8 +43,9 @@ export default function Calendar() {
 
   function nextWeek(delta) {
     const d = new Date(dateStart)
-    d.setDate(d.getDate() + 7 * delta)
-    setDateStart(d)
+    // avanzar en bloques de 5 días (solo días laborales)
+    d.setDate(d.getDate() + 5 * delta)
+    setDateStart(startOfWeekMonday(d))
   }
 
   const [modalOpen, setModalOpen] = useState(false)
@@ -49,44 +68,75 @@ export default function Calendar() {
     else { setModalOpen(false); fetchBookings(); alert('Reserva creada' + (isMock ? ' (modo mock)' : '')) }
   }
 
-  const days = Array.from({length:7}).map((_,i)=>{
+  const days = Array.from({length:5}).map((_,i)=>{
     const d = new Date(dateStart)
     d.setDate(d.getDate()+i)
     return d
   })
 
   return (
-    <div>
-      <h2>Turnos</h2>
-      <div style={{display:'flex',gap:12,alignItems:'center'}}>
-        <button onClick={()=>nextWeek(-1)}>← Anterior</button>
-        <button onClick={()=>nextWeek(1)}>Siguiente →</button>
+    <div className="container">
+      <div className="card">
+        <h2>Turnos</h2>
+        <div className="controls">
+          <button className="btn" onClick={()=>nextWeek(-1)}>← Anterior</button>
+          <button className="btn" onClick={()=>nextWeek(1)}>Siguiente →</button>
+        </div>
+
+        {isMobile ? (
+          <div className="carousel" role="list">
+            {days.map((d,di)=>{
+              const iso = d.toISOString().slice(0,10)
+              return (
+                <div key={di} className="day-card" role="listitem">
+                  <div className="card">
+                    <h4>{d.toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})}</h4>
+                    <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                      {TIMES.map(time=>{
+                        const taken = bookings.find(b=>b.date===iso && b.slot===time)
+                        return (
+                          <div key={time} style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                            <div style={{color:'var(--muted)'}}>{time}</div>
+                            <div>
+                              {taken ? <span className="badge">Reservado</span> : <button className="btn btn-primary" onClick={()=>openModal(di,time)}>Reservar</button>}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        ) : (
+          <table className="table" aria-label="Tabla de turnos">
+            <thead>
+              <tr>
+                <th>Hora</th>
+                {days.map((d,i)=>(<th key={i}>{d.toLocaleDateString()}</th>))}
+              </tr>
+            </thead>
+            <tbody>
+              {TIMES.map(time=> (
+                <tr key={time}>
+                  <td className="time-cell">{time}</td>
+                  {days.map((d,di)=>{
+                    const iso = d.toISOString().slice(0,10)
+                    const taken = bookings.find(b=>b.date===iso && b.slot===time)
+                    return (
+                      <td key={di} className="slot">
+                        {taken ? (<span className="badge">Reservado</span>) : (<button className="btn btn-primary" onClick={()=>openModal(di,time)}>Reservar</button>)}
+                      </td>
+                    )
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
-      <table style={{width:'100%',marginTop:12,borderCollapse:'collapse'}}>
-        <thead>
-          <tr>
-            <th>Hora</th>
-            {days.map((d,i)=>(<th key={i}>{d.toLocaleDateString()}</th>))}
-          </tr>
-        </thead>
-        <tbody>
-          {TIMES.map(time=> (
-            <tr key={time}>
-              <td style={{padding:8,border:'1px solid #ddd'}}>{time}</td>
-              {days.map((d,di)=>{
-                const iso = d.toISOString().slice(0,10)
-                const taken = bookings.find(b=>b.date===iso && b.slot===time)
-                return (
-                  <td key={di} style={{padding:8,border:'1px solid #ddd',textAlign:'center'}}>
-                    {taken ? (<small>Reservado</small>) : (<button onClick={()=>openModal(di,time)}>Reservar</button>)}
-                  </td>
-                )
-              })}
-            </tr>
-          ))}
-        </tbody>
-      </table>
       <BookingModal open={modalOpen} time={modalTime} dayIndex={modalDay} onClose={()=>setModalOpen(false)} onSubmit={handleSubmitBooking} />
     </div>
   )

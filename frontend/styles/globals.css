@@ -1,2 +1,86 @@
-body { margin: 0; padding: 0; }
-button { cursor: pointer }
+:root{
+	/* Paleta del proyecto (proporcionada) */
+	--primary-green: #a8d5ba;
+	--secondary-blue-light: #a3c6f1;
+	--secondary-gray: #4b4e5a;
+	--primary-beige: #f2e9e1;
+	--primary-beige-light: #e9e1da;
+	--primary-orange: #f8a488;
+	--secondary-purple: #d7c9e3;
+
+	/* Variables semánticas usadas por la UI */
+	--bg: var(--primary-beige);
+	--card: #ffffff;
+	--muted: var(--secondary-gray);
+	--primary: var(--primary-orange);
+	--accent-soft: var(--primary-green);
+	--accent-soft-2: var(--secondary-blue-light);
+	--border: rgba(75,78,90,0.08);
+	--radius: 10px;
+	--max-width: 980px;
+	--gap: 12px;
+	--font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+	--nav-height: 64px;
+}
+
+*{box-sizing:border-box}
+html,body,#__next{height:100%}
+body{margin:0;background:var(--bg);font-family:var(--font-sans);color:#071233;line-height:1.45;-webkit-font-smoothing:antialiased;padding:24px;padding-top:calc(24px + var(--nav-height))}
+
+.container{max-width:var(--max-width);margin:0 auto}
+
+/* Barra de navegación fija */
+.topnav{position:fixed;top:0;left:0;right:0;height:var(--nav-height);background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;z-index:1100}
+.topnav .container{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.topnav .brand{display:flex;align-items:center;gap:12px}
+.topnav .nav-actions{display:flex;gap:8px;align-items:center}
+
+
+h2,h3{margin:0 0 8px 0;color:#071233}
+
+.card{background:var(--card);border:1px solid var(--border);padding:16px;border-radius:var(--radius);box-shadow:0 6px 18px rgba(11,18,32,0.04)}
+
+.controls{display:flex;gap:var(--gap);align-items:center}
+.btn{background:transparent;border:1px solid var(--border);padding:8px 12px;border-radius:8px;font-weight:600;color:var(--primary);cursor:pointer;transition:all .12s ease}
+.btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(11,93,232,0.08)}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.btn-primary{background:var(--primary);color:#fff;border-color:transparent}
+
+.table{width:100%;margin-top:12px;border-collapse:collapse}
+.table th{padding:12px 8px;text-align:left;color:var(--muted);font-weight:700;font-size:.95rem}
+.table td{padding:10px 8px;border:1px solid var(--border);vertical-align:middle}
+.time-cell{width:140px;color:var(--muted);font-weight:700}
+.slot{text-align:center}
+.slot .btn{padding:6px 10px}
+.badge{display:inline-block;padding:6px 10px;background:#f1f5f9;border-radius:999px;color:var(--muted);font-size:.85rem}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(2,6,23,0.45);display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:var(--card);padding:20px;width:100%;max-width:420px;border-radius:12px;box-shadow:0 14px 40px rgba(2,6,23,0.14)}
+.form-field{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.input{padding:10px 12px;border-radius:8px;border:1px solid var(--border);width:100%;font-size:0.95rem}
+.row-right{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+
+@media (max-width:640px){
+	.time-cell{width:100px}
+	.container{padding:0 12px}
+}
+
+/* Carousel móvil para calendario */
+.carousel{
+	display:flex;
+	gap:12px;
+	overflow-x:auto;
+	scroll-snap-type:x mandatory;
+	-webkit-overflow-scrolling:touch;
+	padding:12px 6px;
+}
+.carousel::-webkit-scrollbar{display:none}
+.day-card{
+	flex:0 0 84%;
+	scroll-snap-align:center;
+	min-width:260px;
+	max-width:92%;
+}
+.day-card .card{padding:12px}
+.day-card h4{margin:0 0 8px 0;color:var(--secondary-gray)}
+
